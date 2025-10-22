@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     providerOptions: {
       xai: {
         searchParameters: {
-          mode: "auto", // 'auto', 'on', or 'off'
+          mode: "on", // 'auto', 'on', or 'off'
           returnCitations: true,
           maxSearchResults: 5,
         },
