@@ -15,7 +15,7 @@ import DeleteAllButton from "@/components/searchSidebar/deleteAllButton";
 export async function SearchSidebar() {
   const conversations = await readConversationsAction();
   return (
-    <Sidebar>
+    <Sidebar side="right">
       <SidebarHeader>
         <ModeToggle />
       </SidebarHeader>
