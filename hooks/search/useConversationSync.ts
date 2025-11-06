@@ -30,6 +30,9 @@ export function useConversationSync(
         setMessages(dbMessages.map(dbMessageToUIMessage));
       } catch (error) {
         console.error("Failed to load messages:", error);
+        // 会話が存在しない場合（削除された場合など）はメッセージをクリア
+        setMessages([]);
+        setCurrentConversationId(null);
       }
     };
 

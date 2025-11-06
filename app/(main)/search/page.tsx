@@ -83,6 +83,13 @@ export default function SearchPage() {
     conversationIdRef.current = currentConversationId;
   }, [currentConversationId]);
 
+  // currentConversationIdがnullになった時にメッセージをクリア
+  useEffect(() => {
+    if (currentConversationId === null) {
+      setMessages([]);
+    }
+  }, [currentConversationId, setMessages]);
+
   useEffect(() => {
     if (isMobile && currentConversationId) {
       setOpenMobile(false);
