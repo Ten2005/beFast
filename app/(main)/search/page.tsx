@@ -77,7 +77,7 @@ export default function SearchPage() {
     transport,
   });
 
-  useConversationSync(setMessages, setCurrentConversationId);
+  useConversationSync(setMessages, setCurrentConversationId, status, stop);
 
   // conversationIdRefを常に最新のcurrentConversationIdと同期
   useEffect(() => {
