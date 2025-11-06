@@ -44,9 +44,15 @@ function NavigationLink({
   label: string;
   pathname: string;
 }) {
+  const isActive = pathname === href;
   return (
     <NavigationMenuLink asChild>
-      <Link href={href} className={cn(pathname === href && "font-bold")}>
+      <Link
+        href={href}
+        className={cn(
+          isActive ? "font-bold" : "text-muted-foreground"
+        )}
+      >
         {label}
       </Link>
     </NavigationMenuLink>
