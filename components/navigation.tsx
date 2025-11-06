@@ -2,15 +2,12 @@
 
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
 import Link from "next/link";
 
 const links = [
@@ -20,32 +17,25 @@ const links = [
 
 export default function Navigation() {
   const pathname = usePathname();
-  const memoizedLinks = useMemo(() => links, []);
 
   return (
     <NavigationMenu>
       <NavigationMenuList>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>
-            {pathname.split("/").pop()}
-          </NavigationMenuTrigger>
-          <NavigationMenuContent>
-            {memoizedLinks.map((link) => (
-              <NavigationLink
-                key={link.href}
-                href={link.href}
-                label={link.label}
-                pathname={pathname}
-              />
-            ))}
-          </NavigationMenuContent>
-        </NavigationMenuItem>
+        {links.map((link) => (
+          <NavigationMenuItem key={link.href}>
+            <NavigationLink
+              href={link.href}
+              label={link.label}
+              pathname={pathname}
+            />
+          </NavigationMenuItem>
+        ))}
       </NavigationMenuList>
     </NavigationMenu>
   );
 }
 
-export function NavigationLink({
+function NavigationLink({
   href,
   label,
   pathname,
@@ -54,9 +44,16 @@ export function NavigationLink({
   label: string;
   pathname: string;
 }) {
+  const isActive = pathname === href;
   return (
-    <NavigationMenuLink key={href} asChild>
-      <Link href={href} className={cn(pathname === href && "font-bold")}>
+    <NavigationMenuLink asChild>
+      <Link
+        href={href}
+        className={cn(
+          isActive && "font-bold",
+          !isActive && "text-muted-foreground",
+        )}
+      >
         {label}
       </Link>
     </NavigationMenuLink>
