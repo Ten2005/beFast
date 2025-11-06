@@ -26,7 +26,11 @@ export default function ConversationItem({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setCurrentConversationId, currentConversationId, removeMessageCache } = useChatStore();
+  const {
+    setCurrentConversationId,
+    currentConversationId,
+    removeMessageCache,
+  } = useChatStore();
   const { isMobile, setOpenMobile } = useSidebar();
   const deleteDialogOpenRef = useRef(false);
   const editDialogOpenRef = useRef(false);

@@ -49,5 +49,11 @@ export function useConversationSync(
     };
 
     loadMessages();
-  }, [searchParams, setMessages, setCurrentConversationId, getCachedMessages, setMessageCache]);
+  }, [
+    searchParams,
+    setMessages,
+    setCurrentConversationId,
+    getCachedMessages,
+    setMessageCache,
+  ]);
 }

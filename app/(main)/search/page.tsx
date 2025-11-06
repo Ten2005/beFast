@@ -6,7 +6,10 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import type { UIMessage } from "ai";
 import { useMemo, useRef, useEffect, useState } from "react";
-import { saveMessageAction, readConversationsWithMessagesAction } from "./actions";
+import {
+  saveMessageAction,
+  readConversationsWithMessagesAction,
+} from "./actions";
 import { useRouter } from "next/navigation";
 import { useConversationSync } from "@/hooks/search/useConversationSync";
 import { ChatHeader } from "@/components/chat/chatHeader";
@@ -47,10 +50,7 @@ export default function SearchPage() {
           await readConversationsWithMessagesAction();
         const cache = new Map<number, UIMessage[]>();
         for (const conv of conversationsWithMessages) {
-          cache.set(
-            conv.id,
-            conv.messages.map(dbMessageToUIMessage),
-          );
+          cache.set(conv.id, conv.messages.map(dbMessageToUIMessage));
         }
         initializeMessageCache(cache);
         setIsInitialized(true);

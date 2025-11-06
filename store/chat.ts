@@ -76,7 +76,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   chatType: chatOptions[0],
   setChatType: (chatType: ChatType) => set({ chatType }),
 
-  messageCache: new Map<number, UIMessage[]>(),
+  messageCache: new Map<number, AIUIMessage[]>(),
   setMessageCache: (conversationId, messages) => {
     set((state) => {
       const newCache = new Map(state.messageCache);
