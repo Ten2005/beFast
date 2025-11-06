@@ -29,6 +29,8 @@ export default function SearchPage() {
   const latestUserMessageRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
   const prevConversationIdRef = useRef<number | null>(currentConversationId);
+  const errorHandledRef = useRef(false);
+  const prevErrorRef = useRef<Error | null>(null);
 
   // null→IDへの遷移時は再初期化を避けるため、useChatのidを安定させる
   const [stableChatId, setStableChatId] = useState<string>(() =>
@@ -116,7 +118,12 @@ export default function SearchPage() {
 
   // エラーハンドリング: エラー発生時にトーストを表示し、状態をリセット
   useEffect(() => {
-    if (error) {
+    const hadError = prevErrorRef.current !== null;
+    const hasError = error !== null;
+
+    if (hasError && !hadError) {
+      // エラーが新しく発生した場合
+      errorHandledRef.current = true;
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -126,10 +133,33 @@ export default function SearchPage() {
       toast.error(errorMessage, {
         description: "もう一度お試しください",
       });
-      // エラー発生時にストリーミングを停止して状態をリセット
+      // エラー発生時にストリーミングを停止
       stop();
     }
+
+    prevErrorRef.current = error;
   }, [error, stop]);
+
+  // エラーが解消された後、statusが"ready"に戻らない場合にリセット
+  useEffect(() => {
+    if (!errorHandledRef.current || error !== null) return;
+
+    // エラーが解消されたが、statusが"ready"に戻っていない場合
+    if (status !== "ready") {
+      // useChatを再初期化してstatusをリセット
+      // メッセージは現在のmessagesから取得（再初期化時に保持）
+      const currentId = stableChatId;
+      const resetId = `${currentId}-reset-${Date.now()}`;
+      setStableChatId(resetId);
+      // 次のレンダリングサイクルで元のIDに戻す（メッセージはuseChatが自動的に保持）
+      setTimeout(() => {
+        setStableChatId(currentId);
+        errorHandledRef.current = false;
+      }, 0);
+    } else {
+      errorHandledRef.current = false;
+    }
+  }, [error, status, stableChatId]);
 
   const handleClearChat = () => {
     setMessages([]);
