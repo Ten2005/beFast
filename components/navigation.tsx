@@ -50,7 +50,8 @@ function NavigationLink({
       <Link
         href={href}
         className={cn(
-          isActive ? "font-bold" : "text-muted-foreground"
+          isActive && "font-bold",
+          !isActive && "text-muted-foreground",
         )}
       >
         {label}
