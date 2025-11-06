@@ -11,6 +11,7 @@ import { useConversationSync } from "@/hooks/search/useConversationSync";
 import { ChatHeader } from "@/components/chat/chatHeader";
 import { ChatInput } from "@/components/chat/chatInput";
 import { useSidebar } from "@/components/ui/sidebar";
+import { toast } from "sonner";
 
 export default function SearchPage() {
   const {
@@ -71,7 +72,7 @@ export default function SearchPage() {
     [], // 依存配列を空にして、transportを固定
   );
 
-  const { messages, setMessages, sendMessage, status } = useChat({
+  const { messages, setMessages, sendMessage, status, error, stop } = useChat({
     id: stableChatId,
     transport,
   });
@@ -112,6 +113,23 @@ export default function SearchPage() {
     // 現在のメッセージ数を保存
     prevMessagesLengthRef.current = messages.length;
   }, [messages]);
+
+  // エラーハンドリング: エラー発生時にトーストを表示し、状態をリセット
+  useEffect(() => {
+    if (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === "string"
+            ? error
+            : "会話の生成中にエラーが発生しました";
+      toast.error(errorMessage, {
+        description: "もう一度お試しください",
+      });
+      // エラー発生時にストリーミングを停止して状態をリセット
+      stop();
+    }
+  }, [error, stop]);
 
   const handleClearChat = () => {
     setMessages([]);
