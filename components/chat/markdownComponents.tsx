@@ -27,6 +27,16 @@ export const markdownComponents: Components = {
   blockquote: ({ children }) => (
     <blockquote className="mt-6 border-l-2 pl-6 italic">{children}</blockquote>
   ),
+  table: ({ children }) => (
+    <div className="overflow-x-auto w-full my-4">
+      <table className="border-collapse border border-border w-full min-w-full">
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children }) => <thead>{children}</thead>,
+  tbody: ({ children }) => <tbody>{children}</tbody>,
+  tfoot: ({ children }) => <tfoot>{children}</tfoot>,
   tr: ({ children }) => (
     <tr className="even:bg-muted m-0 border-t p-0">{children}</tr>
   ),
