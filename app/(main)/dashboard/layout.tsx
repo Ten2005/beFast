@@ -10,8 +10,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <DashboardSidebar />
       <main className="w-full">
         <div className="flex flex-row items-center justify-between px-2 py-1 h-10 border-b sticky top-0 bg-background z-10">
-          <SidebarTrigger />
           <Navigation />
+          <SidebarTrigger />
         </div>
         {children}
       </main>

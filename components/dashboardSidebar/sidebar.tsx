@@ -16,7 +16,7 @@ import CreateFileButton from "@/components/dashboardSidebar/createFileButton";
 export async function DashboardSidebar() {
   const folders = await readFoldersAction();
   return (
-    <Sidebar>
+    <Sidebar side="right">
       <SidebarHeader>
         <ModeToggle />
       </SidebarHeader>
