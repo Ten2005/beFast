@@ -26,7 +26,7 @@ export default function ConversationItem({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setCurrentConversationId, currentConversationId } = useChatStore();
+  const { setCurrentConversationId, currentConversationId, removeMessageCache } = useChatStore();
   const { isMobile, setOpenMobile } = useSidebar();
   const deleteDialogOpenRef = useRef(false);
   const editDialogOpenRef = useRef(false);
@@ -46,6 +46,7 @@ export default function ConversationItem({
 
   const handleDelete = async () => {
     await deleteConversationAction(id);
+    removeMessageCache(id);
     const currentId = searchParams.get("c");
     if (
       (currentId && Number(currentId) === id) ||

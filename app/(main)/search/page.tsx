@@ -4,13 +4,15 @@ import { useChatStore } from "@/store/chat";
 import { Message } from "@/components/chat/message";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import type { UIMessage } from "ai";
 import { useMemo, useRef, useEffect, useState } from "react";
-import { saveMessageAction } from "./actions";
+import { saveMessageAction, readConversationsWithMessagesAction } from "./actions";
 import { useRouter } from "next/navigation";
 import { useConversationSync } from "@/hooks/search/useConversationSync";
 import { ChatHeader } from "@/components/chat/chatHeader";
 import { ChatInput } from "@/components/chat/chatInput";
 import { useSidebar } from "@/components/ui/sidebar";
+import { dbMessageToUIMessage } from "@/utils/message";
 
 export default function SearchPage() {
   const {
@@ -20,6 +22,9 @@ export default function SearchPage() {
     setChatType,
     input,
     setInput,
+    initializeMessageCache,
+    messageCache,
+    setMessageCache,
   } = useChatStore();
   const router = useRouter();
   const conversationIdRef = useRef<number | null>(currentConversationId);
@@ -28,6 +33,35 @@ export default function SearchPage() {
   const latestUserMessageRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
   const prevConversationIdRef = useRef<number | null>(currentConversationId);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // 初期化時に一括で会話とメッセージを取得してキャッシュに保存
+  useEffect(() => {
+    if (isInitialized || messageCache.size > 0) {
+      return;
+    }
+
+    const initializeCache = async () => {
+      try {
+        const conversationsWithMessages =
+          await readConversationsWithMessagesAction();
+        const cache = new Map<number, UIMessage[]>();
+        for (const conv of conversationsWithMessages) {
+          cache.set(
+            conv.id,
+            conv.messages.map(dbMessageToUIMessage),
+          );
+        }
+        initializeMessageCache(cache);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("Failed to initialize message cache:", error);
+        setIsInitialized(true); // エラーでも初期化済みとして扱う
+      }
+    };
+
+    initializeCache();
+  }, [isInitialized, messageCache.size, initializeMessageCache]);
 
   // null→IDへの遷移時は再初期化を避けるため、useChatのidを安定させる
   const [stableChatId, setStableChatId] = useState<string>(() =>
@@ -89,6 +123,13 @@ export default function SearchPage() {
       setMessages([]);
     }
   }, [currentConversationId, setMessages]);
+
+  // メッセージが更新されたときにキャッシュも更新
+  useEffect(() => {
+    if (currentConversationId !== null && messages.length > 0) {
+      setMessageCache(currentConversationId, messages);
+    }
+  }, [messages, currentConversationId, setMessageCache]);
 
   useEffect(() => {
     if (isMobile && currentConversationId) {

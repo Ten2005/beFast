@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { UIMessage as AIUIMessage } from "ai";
 
 export interface Message {
   role: "user" | "assistant" | "developer";
@@ -36,9 +37,17 @@ interface ChatStore {
 
   chatType: ChatType;
   setChatType: (chatType: ChatType) => void;
+
+  // メッセージキャッシュ（会話ID -> AIUIMessage[]）
+  messageCache: Map<number, AIUIMessage[]>;
+  setMessageCache: (conversationId: number, messages: AIUIMessage[]) => void;
+  getCachedMessages: (conversationId: number) => AIUIMessage[] | undefined;
+  clearMessageCache: () => void;
+  removeMessageCache: (conversationId: number) => void;
+  initializeMessageCache: (cache: Map<number, AIUIMessage[]>) => void;
 }
 
-export const useChatStore = create<ChatStore>((set) => ({
+export const useChatStore = create<ChatStore>((set, get) => ({
   input: "",
   setInput: (input) => set({ input }),
 
@@ -66,4 +75,29 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   chatType: chatOptions[0],
   setChatType: (chatType: ChatType) => set({ chatType }),
+
+  messageCache: new Map<number, UIMessage[]>(),
+  setMessageCache: (conversationId, messages) => {
+    set((state) => {
+      const newCache = new Map(state.messageCache);
+      newCache.set(conversationId, messages);
+      return { messageCache: newCache };
+    });
+  },
+  getCachedMessages: (conversationId) => {
+    return get().messageCache.get(conversationId);
+  },
+  clearMessageCache: () => {
+    set({ messageCache: new Map() });
+  },
+  removeMessageCache: (conversationId) => {
+    set((state) => {
+      const newCache = new Map(state.messageCache);
+      newCache.delete(conversationId);
+      return { messageCache: newCache };
+    });
+  },
+  initializeMessageCache: (cache) => {
+    set({ messageCache: cache });
+  },
 }));

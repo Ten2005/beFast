@@ -84,6 +84,78 @@ export async function readMessages(
   return messages;
 }
 
+export interface ConversationWithMessages {
+  id: number;
+  title: string;
+  created_at: string;
+  messages: DbMessage[];
+}
+
+export async function readConversationsWithMessages(): Promise<
+  ConversationWithMessages[]
+> {
+  const supabase = await createClient();
+  const user = await getUser();
+
+  // 会話一覧を取得
+  const { data: conversations, error: conversationsError } = await supabase
+    .from("conversations")
+    .select()
+    .eq("user_id", user.id)
+    .eq("is_deleted", false)
+    .order("created_at", { ascending: false });
+
+  if (conversationsError) {
+    console.error(conversationsError);
+    throw new Error("Failed to read conversations");
+  }
+
+  if (!conversations || conversations.length === 0) {
+    return [];
+  }
+
+  // すべての会話IDを取得
+  const conversationIds = conversations.map((conv) => conv.id);
+
+  // すべてのメッセージを一括取得
+  const { data: messages, error: messagesError } = await supabase
+    .from("messages")
+    .select()
+    .in("conversation_id", conversationIds)
+    .eq("user_id", user.id)
+    .eq("is_deleted", false)
+    .order("created_at", { ascending: true });
+
+  if (messagesError) {
+    console.error(messagesError);
+    throw new Error("Failed to read messages");
+  }
+
+  // メッセージを会話IDごとにグループ化
+  const messagesByConversation = new Map<number, DbMessage[]>();
+  if (messages) {
+    for (const message of messages) {
+      const conversationId = message.conversation_id as number;
+      if (!messagesByConversation.has(conversationId)) {
+        messagesByConversation.set(conversationId, []);
+      }
+      messagesByConversation.get(conversationId)!.push({
+        id: message.id,
+        content: message.content,
+        role: (message.role as "user" | "assistant" | "system") ?? "assistant",
+      });
+    }
+  }
+
+  // 会話とメッセージを結合
+  return conversations.map((conversation) => ({
+    id: conversation.id,
+    title: conversation.title,
+    created_at: conversation.created_at,
+    messages: messagesByConversation.get(conversation.id) || [],
+  }));
+}
+
 export async function updateConversation(
   title: string,
   conversation_id: number,

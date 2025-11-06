@@ -6,6 +6,7 @@ import {
   addMessage,
   readMessages,
   readConversations,
+  readConversationsWithMessages,
   deleteConversation,
   updateConversation,
   deleteAllConversations,
@@ -36,6 +37,11 @@ export async function readMessagesAction(conversation_id: number) {
 export async function readConversationsAction() {
   const conversations = await readConversations();
   return conversations;
+}
+
+export async function readConversationsWithMessagesAction() {
+  const conversationsWithMessages = await readConversationsWithMessages();
+  return conversationsWithMessages;
 }
 
 export async function updateConversationAction(
