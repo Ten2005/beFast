@@ -79,7 +79,7 @@ export function DashboardHeader() {
 
   return (
     <div className="flex flex-col justify-center py-1 px-2 sticky h-10 top-10 z-5">
-      <div className="flex flex-row items-center justify-between">
+      <div className="flex flex-row items-center justify-end">
         <div className="flex flex-row items-center gap-2">
           <Select
             value={commandModel}
