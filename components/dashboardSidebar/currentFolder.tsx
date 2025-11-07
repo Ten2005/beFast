@@ -35,7 +35,6 @@ export default function CurrentFolder() {
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const editDialogOpenRef = useRef(false);
   const deleteDialogOpenRef = useRef(false);
-  const [tappingFileId, setTappingFileId] = useState<number | null>(null);
 
   useEffect(() => {
     setIsTouchDevice("ontouchstart" in window || navigator.maxTouchPoints > 0);
@@ -216,7 +215,6 @@ export default function CurrentFolder() {
             key={file.id}
             onClick={() => {
               if (!isDragging) {
-                setTappingFileId(file.id);
                 setCurrentFile(file);
                 // Close sidebar on mobile when file is selected
                 if (
@@ -226,14 +224,11 @@ export default function CurrentFolder() {
                 ) {
                   setOpenMobile(false);
                 }
-                // ページ遷移が完了したら状態をリセット
-                setTimeout(() => setTappingFileId(null), 300);
               }
             }}
             className={cn(
               currentFile?.id === file.id && "bg-accent",
-              "transition-all duration-150",
-              tappingFileId === file.id && "bg-accent/80 opacity-80 scale-[0.98]",
+              "transition-all duration-150 active:bg-accent/80 active:opacity-80 active:scale-[0.98]",
             )}
             asChild
           >

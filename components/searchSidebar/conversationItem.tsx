@@ -14,7 +14,7 @@ import {
   updateConversationAction,
 } from "@/app/(main)/search/actions";
 import { useChatStore } from "@/store/chat";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { cn } from "@/lib/utils";
 
 export default function ConversationItem({
@@ -70,8 +70,7 @@ export default function ConversationItem({
         onClick={handleOpen}
         className={cn(
           isSelected && "bg-accent",
-          "transition-all duration-150",
-          isTapping && "bg-accent/80 opacity-80 scale-[0.98]",
+          "transition-all duration-150 active:bg-accent/80 active:opacity-80 active:scale-[0.98]",
         )}
         asChild
       >
