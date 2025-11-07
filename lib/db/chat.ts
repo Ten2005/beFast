@@ -13,7 +13,7 @@ export async function createConversation(title: string) {
   const { data, error } = await supabase
     .from("conversations")
     .insert({ title, user_id: user.id })
-    .select()
+    .select("id, title, created_at, updated_at")
     .single();
   if (error) {
     console.error(error);
@@ -27,9 +27,10 @@ export async function readConversations() {
   const user = await getUser();
   const { data, error } = await supabase
     .from("conversations")
-    .select()
+    .select("id, title, updated_at")
     .eq("user_id", user.id)
-    .eq("is_deleted", false);
+    .eq("is_deleted", false)
+    .order("updated_at", { ascending: false });
   if (error) {
     console.error(error);
     throw new Error("Failed to read conversations");
@@ -52,7 +53,7 @@ export async function addMessage(
       role,
       user_id: user.id,
     })
-    .select()
+    .select("id, conversation_id, content, role, created_at")
     .single();
   if (error) {
     console.error(error);
@@ -68,7 +69,7 @@ export async function readMessages(
   const user = await getUser();
   const { data, error } = await supabase
     .from("messages")
-    .select()
+    .select("id, content, role")
     .eq("conversation_id", conversation_id)
     .eq("user_id", user.id)
     .eq("is_deleted", false);

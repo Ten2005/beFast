@@ -69,6 +69,26 @@ export async function readFiles(parent_id: number) {
   return data;
 }
 
+export async function readFilesByParentIds(parentIds: number[]) {
+  if (parentIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const user = await getUser();
+  const { data, error } = await supabase
+    .from("file")
+    .select("id, parent_id, title, content, page")
+    .eq("user_id", user.id)
+    .in("parent_id", parentIds)
+    .eq("is_deleted", false);
+  if (error) {
+    console.error(error);
+    throw new Error("Failed to get files by parent ids");
+  }
+  return data;
+}
+
 export async function updateFile(id: number, title: string, content: string) {
   const supabase = await createClient();
   const user = await getUser();

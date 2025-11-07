@@ -11,6 +11,7 @@ import {
   createFile,
   deleteFile,
   readFiles,
+  readFilesByParentIds,
   updateFile,
   incrementFilePages,
   renumberFilePages,
@@ -32,12 +33,33 @@ export async function createFolderAction(name: string) {
 export async function readFoldersAction() {
   try {
     const folders = await readFolders();
-    const foldersWithFiles = await Promise.all(
-      folders.map(async (folder) => ({
-        ...folder,
-        files: await readFiles(folder.id),
-      })),
-    );
+    const folderIds = folders.map((folder) => folder.id);
+    const filesByFolder = new Map<
+      number,
+      Awaited<ReturnType<typeof readFiles>>
+    >();
+
+    if (folderIds.length > 0) {
+      const files = await readFilesByParentIds(folderIds);
+
+      files.forEach((file) => {
+        const parentFiles = filesByFolder.get(file.parent_id) ?? [];
+        parentFiles.push({
+          id: file.id,
+          title: file.title,
+          content: file.content,
+          page: file.page,
+        });
+        filesByFolder.set(file.parent_id, parentFiles);
+      });
+    }
+
+    const foldersWithFiles = folders.map((folder) => ({
+      ...folder,
+      files: (filesByFolder.get(folder.id) ?? []).sort(
+        (a, b) => (a.page ?? 0) - (b.page ?? 0),
+      ),
+    }));
     // Sort: pinned first, then by name
     foldersWithFiles.sort((a, b) => {
       const ap = a.is_pinned ? 1 : 0;
