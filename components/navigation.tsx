@@ -52,6 +52,7 @@ function NavigationLink({
         className={cn(
           isActive && "font-bold",
           !isActive && "text-muted-foreground",
+          "transition-all duration-150 active:bg-accent",
         )}
       >
         {label}

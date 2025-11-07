@@ -226,7 +226,10 @@ export default function CurrentFolder() {
                 }
               }
             }}
-            className={cn(currentFile?.id === file.id && "bg-accent")}
+            className={cn(
+              currentFile?.id === file.id && "bg-accent",
+              "transition-all duration-150 active:bg-accent",
+            )}
             asChild
           >
             <div

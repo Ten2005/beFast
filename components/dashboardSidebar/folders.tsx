@@ -167,8 +167,9 @@ export default function Folders({
             variant="ghost"
             size="sm"
             className={cn(
-              "p-0 justify-between w-full",
+              "p-0 justify-between w-full transition-all duration-150",
               currentFolder?.id === folder.id && "bg-accent",
+              "active:bg-accent",
             )}
             onClick={() => changeFolder(folder)}
             asChild

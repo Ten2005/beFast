@@ -68,7 +68,10 @@ export default function ConversationItem({
     <SidebarMenuItem>
       <SidebarMenuButton
         onClick={handleOpen}
-        className={cn(isSelected && "bg-accent")}
+        className={cn(
+          isSelected && "bg-accent",
+          "transition-all duration-150 active:bg-accent",
+        )}
         asChild
       >
         <div className="flex items-center w-full">
