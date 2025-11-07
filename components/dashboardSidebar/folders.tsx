@@ -18,7 +18,7 @@ import {
   deleteFolderAction,
   updateFolderAction,
 } from "@/app/(main)/dashboard/actions";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import DeleteConfirmationDialog from "@/components/dashboardSidebar/deleteConfirmationDialog";
 import EditConfirmationDialog from "@/components/dashboardSidebar/editConfirmationDialog";
@@ -46,6 +46,7 @@ export default function Folders({
   const { setCurrentFile } = useDashboardStore();
 
   const debounceTimers = useRef<Map<number, NodeJS.Timeout>>(new Map());
+  const [tappingFolderId, setTappingFolderId] = useState<number | null>(null);
 
   useEffect(() => {
     setFolders(initialFolders);
@@ -98,6 +99,7 @@ export default function Folders({
 
   const changeFolder = useCallback(
     async (folder: UsedFolder) => {
+      setTappingFolderId(folder.id);
       setCurrentFolder(folder);
 
       const files = getFilesByFolder(folder.id);
@@ -117,6 +119,9 @@ export default function Folders({
           console.error("Failed to create file:", error);
         }
       }
+
+      // ページ遷移が完了したら状態をリセット
+      setTimeout(() => setTappingFolderId(null), 300);
     },
     [
       setCurrentFolder,
@@ -167,8 +172,9 @@ export default function Folders({
             variant="ghost"
             size="sm"
             className={cn(
-              "p-0 justify-between w-full",
+              "p-0 justify-between w-full transition-all duration-150",
               currentFolder?.id === folder.id && "bg-accent",
+              tappingFolderId === folder.id && "bg-accent/80 opacity-80 scale-[0.98]",
             )}
             onClick={() => changeFolder(folder)}
             asChild

@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useState } from "react";
 
 const links = [
   { href: "/dashboard", label: "Dashboard" },
@@ -45,13 +46,24 @@ function NavigationLink({
   pathname: string;
 }) {
   const isActive = pathname === href;
+  const [isTapping, setIsTapping] = useState(false);
+
+  const handleClick = () => {
+    setIsTapping(true);
+    // ページ遷移が完了したら状態をリセット
+    setTimeout(() => setIsTapping(false), 300);
+  };
+
   return (
     <NavigationMenuLink asChild>
       <Link
         href={href}
+        onClick={handleClick}
         className={cn(
           isActive && "font-bold",
           !isActive && "text-muted-foreground",
+          "transition-all duration-150",
+          isTapping && "bg-accent/80 opacity-80 scale-95",
         )}
       >
         {label}
