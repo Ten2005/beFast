@@ -169,7 +169,7 @@ export default function Folders({
             className={cn(
               "p-0 justify-between w-full transition-all duration-150",
               currentFolder?.id === folder.id && "bg-accent",
-              "active:bg-accent/80 active:opacity-80 active:scale-[0.98]",
+              "active:bg-accent",
             )}
             onClick={() => changeFolder(folder)}
             asChild
