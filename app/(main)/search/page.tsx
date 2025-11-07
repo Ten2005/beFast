@@ -198,12 +198,10 @@ export default function SearchPage() {
 
     const snapshot = cloneMessages(messages);
 
-    let savedMessage:
-      | {
-          conversationId: number;
-          messageId: number;
-        }
-      | null = null;
+    let savedMessage: {
+      conversationId: number;
+      messageId: number;
+    } | null = null;
 
     try {
       savedMessage = await saveMessageAction(
