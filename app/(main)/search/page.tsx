@@ -3,15 +3,21 @@
 import { useChatStore } from "@/store/chat";
 import { Message } from "@/components/chat/message";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { useMemo, useRef, useEffect, useState } from "react";
-import { saveMessageAction } from "./actions";
+import { DefaultChatTransport, type UIMessage } from "ai";
+import { useMemo, useRef, useEffect, useState, useCallback } from "react";
+import { deleteMessageAction, saveMessageAction } from "./actions";
 import { useRouter } from "next/navigation";
 import { useConversationSync } from "@/hooks/search/useConversationSync";
 import { ChatHeader } from "@/components/chat/chatHeader";
 import { ChatInput } from "@/components/chat/chatInput";
 import { useSidebar } from "@/components/ui/sidebar";
 import { toast } from "sonner";
+
+const cloneMessages = (messages: UIMessage[]): UIMessage[] =>
+  messages.map((message) => ({
+    ...message,
+    parts: message.parts?.map((part) => ({ ...part })) ?? [],
+  }));
 
 export default function SearchPage() {
   const {
@@ -29,6 +35,13 @@ export default function SearchPage() {
   const latestUserMessageRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
   const prevConversationIdRef = useRef<number | null>(currentConversationId);
+  const activeConversationIdRef = useRef<number | null>(null);
+  const pendingStreamRef = useRef<{
+    conversationId: number;
+    messageId: number;
+    previousMessages: UIMessage[];
+    input: string;
+  } | null>(null);
 
   // null→IDへの遷移時は再初期化を避けるため、useChatのidを安定させる
   const [stableChatId, setStableChatId] = useState<string>(() =>
@@ -79,10 +92,50 @@ export default function SearchPage() {
 
   useConversationSync(setMessages, setCurrentConversationId);
 
+  const abortPendingStream = useCallback(
+    async (reason: "switch" | "error") => {
+      const pending = pendingStreamRef.current;
+      if (!pending) {
+        return;
+      }
+
+      pendingStreamRef.current = null;
+      activeConversationIdRef.current = null;
+
+      stop();
+
+      try {
+        await deleteMessageAction(pending.messageId);
+      } catch (deleteError) {
+        console.error("Failed to delete pending message:", deleteError);
+      }
+
+      if (reason === "error") {
+        setMessages(pending.previousMessages);
+        setInput(pending.input);
+      }
+    },
+    [setInput, setMessages, stop],
+  );
+
   // conversationIdRefを常に最新のcurrentConversationIdと同期
   useEffect(() => {
     conversationIdRef.current = currentConversationId;
   }, [currentConversationId]);
+
+  useEffect(() => {
+    if (status === "ready") {
+      return;
+    }
+
+    const activeConversationId = activeConversationIdRef.current;
+    if (
+      activeConversationId !== null &&
+      currentConversationId !== activeConversationId
+    ) {
+      void abortPendingStream("switch");
+    }
+  }, [abortPendingStream, currentConversationId, status]);
 
   // currentConversationIdがnullになった時にメッセージをクリア
   useEffect(() => {
@@ -116,20 +169,21 @@ export default function SearchPage() {
 
   // エラーハンドリング: エラー発生時にトーストを表示し、状態をリセット
   useEffect(() => {
-    if (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : typeof error === "string"
-            ? error
-            : "会話の生成中にエラーが発生しました";
-      toast.error(errorMessage, {
-        description: "もう一度お試しください",
-      });
-      // エラー発生時にストリーミングを停止して状態をリセット
-      stop();
+    if (!error) {
+      return;
     }
-  }, [error, stop]);
+
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+          ? error
+          : "会話の生成中にエラーが発生しました";
+    toast.error(errorMessage, {
+      description: "もう一度お試しください",
+    });
+    void abortPendingStream("error");
+  }, [abortPendingStream, error]);
 
   const handleClearChat = () => {
     setMessages([]);
@@ -138,19 +192,61 @@ export default function SearchPage() {
   };
 
   const handleSubmit = async (inputText: string) => {
-    // 送信中または既に処理中の場合は早期リターン
     if (status !== "ready") {
       return;
     }
 
-    const savedId = await saveMessageAction(
-      conversationIdRef.current,
-      inputText,
-      "user",
-    );
-    conversationIdRef.current = savedId;
-    setCurrentConversationId(savedId);
-    await sendMessage({ text: inputText });
+    const snapshot = cloneMessages(messages);
+
+    let savedMessage:
+      | {
+          conversationId: number;
+          messageId: number;
+        }
+      | null = null;
+
+    try {
+      savedMessage = await saveMessageAction(
+        conversationIdRef.current,
+        inputText,
+        "user",
+      );
+    } catch (saveError) {
+      console.error("Failed to save user message:", saveError);
+      toast.error(
+        saveError instanceof Error
+          ? saveError.message
+          : "メッセージの送信に失敗しました",
+        {
+          description: "もう一度お試しください",
+        },
+      );
+      setMessages(snapshot);
+      setInput(inputText);
+      return;
+    }
+
+    const { conversationId: savedConversationId, messageId } = savedMessage;
+
+    conversationIdRef.current = savedConversationId;
+    setCurrentConversationId(savedConversationId);
+
+    pendingStreamRef.current = {
+      conversationId: savedConversationId,
+      messageId,
+      previousMessages: snapshot,
+      input: inputText,
+    };
+    activeConversationIdRef.current = savedConversationId;
+
+    try {
+      await sendMessage({ text: inputText });
+      pendingStreamRef.current = null;
+      activeConversationIdRef.current = null;
+    } catch (sendError) {
+      console.error("Failed to stream assistant response:", sendError);
+      await abortPendingStream("error");
+    }
   };
 
   // 最新のユーザーメッセージのインデックスを見つける

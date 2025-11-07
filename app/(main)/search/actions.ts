@@ -9,6 +9,7 @@ import {
   deleteConversation,
   updateConversation,
   deleteAllConversations,
+  deleteMessage,
 } from "@/lib/db/chat";
 
 export async function saveMessageAction(
@@ -25,7 +26,10 @@ export async function saveMessageAction(
   const insertedMessage = await addMessage(conversation_id, message, role);
   revalidatePath("/search");
   revalidateTag("messages");
-  return insertedMessage.conversation_id as number;
+  return {
+    conversationId: insertedMessage.conversation_id as number,
+    messageId: insertedMessage.id as number,
+  };
 }
 
 export async function readMessagesAction(conversation_id: number) {
@@ -56,6 +60,12 @@ export async function deleteConversationAction(conversation_id: number) {
 
 export async function deleteAllConversationsAction() {
   await deleteAllConversations();
+  revalidatePath("/search");
+  revalidateTag("messages");
+}
+
+export async function deleteMessageAction(message_id: number) {
+  await deleteMessage(message_id);
   revalidatePath("/search");
   revalidateTag("messages");
 }

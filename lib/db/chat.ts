@@ -61,6 +61,21 @@ export async function addMessage(
   return data;
 }
 
+export async function deleteMessage(message_id: number) {
+  const supabase = await createClient();
+  const user = await getUser();
+  const { error } = await supabase
+    .from("messages")
+    .update({ is_deleted: true })
+    .eq("id", message_id)
+    .eq("user_id", user.id)
+    .eq("is_deleted", false);
+  if (error) {
+    console.error(error);
+    throw new Error("Failed to delete message");
+  }
+}
+
 export async function readMessages(
   conversation_id: number,
 ): Promise<DbMessage[]> {
