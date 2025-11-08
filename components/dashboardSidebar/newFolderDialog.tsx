@@ -16,12 +16,14 @@ export default function NewFolderDialog() {
     setIsDialogOpen,
     isCreatingFolder,
     setIsCreatingFolder,
+    refreshFolders,
   } = useSidebarStore();
 
   const handleCreateFolder = async () => {
     if (newFolderName === "") return;
     await createFolderAction(newFolderName);
     setNewFolderName("");
+    await refreshFolders();
   };
 
   return (

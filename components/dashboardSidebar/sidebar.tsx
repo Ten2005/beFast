@@ -9,26 +9,19 @@ import {
 } from "@/components/ui/sidebar";
 
 import NewFolderDialog from "@/components/dashboardSidebar/newFolderDialog";
-import { readFoldersAction } from "@/app/(main)/dashboard/actions";
 import Folders from "@/components/dashboardSidebar/folders";
 import CurrentFolder from "@/components/dashboardSidebar/currentFolder";
 import { ModeToggle } from "@/components/modeToggle";
 import CreateFileButton from "@/components/dashboardSidebar/createFileButton";
-import { useEffect, useState } from "react";
-import { UsedFolder, UsedFile } from "@/store/sidebar";
-
-type FolderWithFiles = UsedFolder & { files: UsedFile[] };
+import { useEffect } from "react";
+import { useSidebarStore } from "@/store/sidebar";
 
 export function DashboardSidebar() {
-  const [folders, setFolders] = useState<FolderWithFiles[]>([]);
+  const { refreshFolders } = useSidebarStore();
 
   useEffect(() => {
-    const fetchFolders = async () => {
-      const data = await readFoldersAction();
-      setFolders(data);
-    };
-    fetchFolders();
-  }, []);
+    refreshFolders();
+  }, [refreshFolders]);
 
   return (
     <Sidebar side="right">
@@ -36,7 +29,7 @@ export function DashboardSidebar() {
         <ModeToggle />
       </SidebarHeader>
       <SidebarContent>
-        <Folders folders={folders} />
+        <Folders />
         <SidebarGroup>
           <SidebarGroupContent>
             <div className="flex justify-end">

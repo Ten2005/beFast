@@ -1,6 +1,6 @@
 "use client";
 
-import { UsedFolder, UsedFile } from "@/store/sidebar";
+import { UsedFolder } from "@/store/sidebar";
 import { Button } from "@/components/ui/button";
 import { Pin, PinOff } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
@@ -23,13 +23,7 @@ import { cn } from "@/lib/utils";
 import DeleteConfirmationDialog from "@/components/dashboardSidebar/deleteConfirmationDialog";
 import EditConfirmationDialog from "@/components/dashboardSidebar/editConfirmationDialog";
 
-type FolderWithFiles = UsedFolder & { files: UsedFile[] };
-
-export default function Folders({
-  folders: initialFolders,
-}: {
-  folders: FolderWithFiles[];
-}) {
+export default function Folders() {
   const {
     currentFolder,
     setCurrentFolder,
@@ -40,20 +34,12 @@ export default function Folders({
     setPinningFolder,
     toggleFolderPin,
     revertFolderPin,
-    setFolders,
     folders,
+    refreshFolders,
   } = useSidebarStore();
   const { setCurrentFile } = useDashboardStore();
 
   const debounceTimers = useRef<Map<number, NodeJS.Timeout>>(new Map());
-
-  useEffect(() => {
-    setFolders(initialFolders);
-
-    initialFolders.forEach((folder) => {
-      cacheFiles(folder.id, folder.files);
-    });
-  }, [initialFolders, cacheFiles, setFolders]);
 
   useEffect(() => {
     const timers = debounceTimers.current;
@@ -129,10 +115,9 @@ export default function Folders({
 
   const handleDeleteFolder = async (folderId: number) => {
     await deleteFolderAction(folderId);
+    await refreshFolders();
 
     const updatedFolders = folders.filter((folder) => folder.id !== folderId);
-    setFolders(updatedFolders);
-
     if (currentFolder?.id === folderId) {
       if (updatedFolders.length > 0) {
         await changeFolder(updatedFolders[0]);
@@ -146,14 +131,13 @@ export default function Folders({
 
   const handleEditFolder = async (folderId: number, newName: string) => {
     await updateFolderAction(folderId, newName);
-
-    const updatedFolders = folders.map((folder) =>
-      folder.id === folderId ? { ...folder, name: newName } : folder,
-    );
-    setFolders(updatedFolders);
+    await refreshFolders();
 
     if (currentFolder?.id === folderId) {
-      setCurrentFolder({ ...currentFolder, name: newName });
+      const updatedFolder = folders.find((f) => f.id === folderId);
+      if (updatedFolder) {
+        setCurrentFolder(updatedFolder);
+      }
     }
   };
 

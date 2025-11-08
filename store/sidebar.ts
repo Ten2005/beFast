@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { readFoldersAction } from "@/app/(main)/dashboard/actions";
 
 export interface UsedFolder {
   id: number;
@@ -12,6 +13,8 @@ export interface UsedFile {
   content: string;
   page: number;
 }
+
+type FolderWithFiles = UsedFolder & { files: UsedFile[] };
 
 interface SidebarState {
   newFolderName: string;
@@ -48,6 +51,9 @@ interface SidebarState {
   setPinningFolder: (folderId: number, isPinning: boolean) => void;
   toggleFolderPin: (folderId: number) => void;
   revertFolderPin: (folderId: number) => void;
+
+  // Refresh folders from server
+  refreshFolders: () => Promise<void>;
 }
 
 export const useSidebarStore = create<SidebarState>((set, get) => ({
@@ -202,4 +208,43 @@ export const useSidebarStore = create<SidebarState>((set, get) => ({
         currentFolder: updatedCurrentFolder,
       };
     }),
+
+  refreshFolders: async () => {
+    try {
+      const foldersWithFiles: FolderWithFiles[] = await readFoldersAction();
+      const folders: UsedFolder[] = foldersWithFiles.map(
+        ({ files, ...folder }) => folder,
+      );
+
+      set((state) => {
+        // Update folders
+        const updatedFolders = folders;
+
+        // Update files cache
+        const updatedFilesCache = { ...state.filesCache };
+        foldersWithFiles.forEach((folder) => {
+          updatedFilesCache[folder.id] = folder.files;
+        });
+
+        // Update current folder if it still exists
+        const updatedCurrentFolder =
+          updatedFolders.find((f) => f.id === state.currentFolder?.id) ||
+          state.currentFolder;
+
+        // Update current files if current folder still exists
+        const updatedCurrentFiles = updatedCurrentFolder
+          ? updatedFilesCache[updatedCurrentFolder.id] || []
+          : [];
+
+        return {
+          folders: updatedFolders,
+          filesCache: updatedFilesCache,
+          currentFolder: updatedCurrentFolder,
+          currentFiles: updatedCurrentFiles,
+        };
+      });
+    } catch (error) {
+      console.error("Failed to refresh folders:", error);
+    }
+  },
 }));
