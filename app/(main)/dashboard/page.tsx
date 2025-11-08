@@ -14,8 +14,16 @@ import {
   DELETE_START_FRAG,
   DELETE_END_FRAG,
 } from "@/constants/dashboard";
+import Navigation from "@/components/navigation";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { DashboardSidebar } from "@/components/dashboardSidebar/sidebar";
 
-export default function Dashboard() {
+// 内側のコンポーネント（useSidebarを使用）
+function DashboardContent() {
   const { currentFile, setCurrentFile, commandModel } = useDashboardStore();
   const { isMobile, setOpenMobile } = useSidebar();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -124,13 +132,31 @@ export default function Dashboard() {
 
   return (
     <>
-      <DashboardHeader />
-      <EditorTextarea
-        ref={textareaRef}
-        value={currentFile?.content || ""}
-        onChange={handleTextAreaChange}
-        disabled={!currentFile}
-      />
+      <SidebarInset>
+        <header className="flex h-10 shrink-0 items-center gap-2 border-b">
+          <div className="flex justify-between w-full items-center gap-2 px-3">
+            <Navigation />
+            <SidebarTrigger />
+          </div>
+        </header>
+        <DashboardHeader />
+        <EditorTextarea
+          ref={textareaRef}
+          value={currentFile?.content || ""}
+          onChange={handleTextAreaChange}
+          disabled={!currentFile}
+        />
+      </SidebarInset>
+      <DashboardSidebar />
     </>
+  );
+}
+
+// 外側のコンポーネント（SidebarProviderをラップ）
+export default function Dashboard() {
+  return (
+    <SidebarProvider>
+      <DashboardContent />
+    </SidebarProvider>
   );
 }

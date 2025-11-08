@@ -12,8 +12,16 @@ import { ChatHeader } from "@/components/chat/chatHeader";
 import { ChatInput } from "@/components/chat/chatInput";
 import { useSidebar } from "@/components/ui/sidebar";
 import { toast } from "sonner";
+import Navigation from "@/components/navigation";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { SearchSidebar } from "@/components/searchSidebar/sidebar";
 
-export default function SearchPage() {
+// 内側のコンポーネント（useSidebarを使用）
+function SearchContent() {
   const {
     currentConversationId,
     setCurrentConversationId,
@@ -162,28 +170,48 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="flex flex-col w-full h-full">
-      <ChatHeader
-        chatType={chatType}
-        onChatTypeChange={setChatType}
-        onNewChat={handleClearChat}
-      />
-      <div className="p-2 flex-1 flex sticky top-24 flex-col gap-6 mb-36">
-        {messages.map((message, index) => (
-          <div
-            key={message.id}
-            ref={index === latestUserMessageIndex ? latestUserMessageRef : null}
-          >
-            <Message parts={message.parts} isUser={message.role === "user"} />
+    <>
+      <SidebarInset>
+        <header className="flex h-10 shrink-0 items-center gap-2 border-b">
+          <div className="flex justify-between w-full items-center gap-2 px-3">
+            <Navigation />
+            <SidebarTrigger />
           </div>
-        ))}
-      </div>
-      <ChatInput
-        input={input}
-        status={status}
-        onInputChange={setInput}
-        onSubmit={handleSubmit}
-      />
-    </div>
+        </header>
+        <ChatHeader
+          chatType={chatType}
+          onChatTypeChange={setChatType}
+          onNewChat={handleClearChat}
+        />
+        <div className="p-2 flex-1 flex sticky top-24 flex-col gap-6 mb-36">
+          {messages.map((message, index) => (
+            <div
+              key={message.id}
+              ref={
+                index === latestUserMessageIndex ? latestUserMessageRef : null
+              }
+            >
+              <Message parts={message.parts} isUser={message.role === "user"} />
+            </div>
+          ))}
+        </div>
+        <ChatInput
+          input={input}
+          status={status}
+          onInputChange={setInput}
+          onSubmit={handleSubmit}
+        />
+      </SidebarInset>
+      <SearchSidebar />
+    </>
+  );
+}
+
+// 外側のコンポーネント（SidebarProviderをラップ）
+export default function SearchPage() {
+  return (
+    <SidebarProvider>
+      <SearchContent />
+    </SidebarProvider>
   );
 }

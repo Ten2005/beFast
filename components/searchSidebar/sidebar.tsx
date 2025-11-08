@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Sidebar,
   SidebarContent,
@@ -11,9 +13,24 @@ import { ModeToggle } from "@/components/modeToggle";
 import { readConversationsAction } from "@/app/(main)/search/actions";
 import ConversationItem from "@/components/searchSidebar/conversationItem";
 import DeleteAllButton from "@/components/searchSidebar/deleteAllButton";
+import { useEffect, useState } from "react";
 
-export async function SearchSidebar() {
-  const conversations = await readConversationsAction();
+type Conversation = {
+  id: number;
+  title: string;
+};
+
+export function SearchSidebar() {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  useEffect(() => {
+    const fetchConversations = async () => {
+      const data = await readConversationsAction();
+      setConversations(data);
+    };
+    fetchConversations();
+  }, []);
+
   return (
     <Sidebar side="right">
       <SidebarHeader>

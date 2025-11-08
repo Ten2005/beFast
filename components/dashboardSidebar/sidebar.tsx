@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Sidebar,
   SidebarContent,
@@ -12,9 +14,22 @@ import Folders from "@/components/dashboardSidebar/folders";
 import CurrentFolder from "@/components/dashboardSidebar/currentFolder";
 import { ModeToggle } from "@/components/modeToggle";
 import CreateFileButton from "@/components/dashboardSidebar/createFileButton";
+import { useEffect, useState } from "react";
+import { UsedFolder, UsedFile } from "@/store/sidebar";
 
-export async function DashboardSidebar() {
-  const folders = await readFoldersAction();
+type FolderWithFiles = UsedFolder & { files: UsedFile[] };
+
+export function DashboardSidebar() {
+  const [folders, setFolders] = useState<FolderWithFiles[]>([]);
+
+  useEffect(() => {
+    const fetchFolders = async () => {
+      const data = await readFoldersAction();
+      setFolders(data);
+    };
+    fetchFolders();
+  }, []);
+
   return (
     <Sidebar side="right">
       <SidebarHeader>
