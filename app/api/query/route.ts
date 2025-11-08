@@ -1,6 +1,5 @@
 import { xai } from "@ai-sdk/xai";
 import { generateText } from "ai";
-import { removeMarkdown } from "@/utils/removeMarkdown";
 import { NextResponse } from "next/server";
 import { createFileWithContent } from "@/lib/db/file";
 
@@ -35,9 +34,7 @@ export async function POST(req: Request) {
         },
       },
     });
-    const strippedText = await removeMarkdown(text);
-
-    const content = `-> ${prompt} <-\n\n${strippedText}`;
+    const content = `-> ${prompt} <-\n\n${text}`;
 
     const newFile = await createFileWithContent(
       folderId,
@@ -46,7 +43,7 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({
-      text: strippedText,
+      text,
       fileId: newFile.id,
       page: newFile.page,
     });

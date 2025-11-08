@@ -24,6 +24,9 @@ interface DashboardState {
   setCommandModel: (
     commandModel: (typeof COMMAND_MODEL_OPTIONS)[number],
   ) => void;
+
+  isEditMode: boolean;
+  setIsEditMode: (isEditMode: boolean) => void;
 }
 
 export const useDashboardStore = create<DashboardState>((set, get) => ({
@@ -46,4 +49,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
   commandModel: "fast",
   setCommandModel: (commandModel) => set({ commandModel }),
+
+  isEditMode: false,
+  setIsEditMode: (isEditMode) => set({ isEditMode }),
 }));

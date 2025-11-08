@@ -21,6 +21,7 @@ import {
 import { InfoIcon, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Sheet,
   SheetContent,
@@ -37,10 +38,34 @@ import {
 } from "@/components/ui/input-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-export function DashboardHeader() {
+type DashboardHeaderProps = {
+  onSave?: () => Promise<void>;
+};
+
+export function DashboardHeader({ onSave }: DashboardHeaderProps) {
   const { currentFolder, setCurrentFiles } = useSidebarStore();
-  const { commandModel, setCommandModel } = useDashboardStore();
+  const {
+    commandModel,
+    setCommandModel,
+    isEditMode,
+    setIsEditMode,
+    currentFile,
+  } = useDashboardStore();
   const [open, setOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleEditToggle = async () => {
+    if (isEditMode && onSave) {
+      setIsSaving(true);
+      try {
+        await onSave();
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      setIsEditMode(true);
+    }
+  };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!currentFolder) {
@@ -114,6 +139,15 @@ export function DashboardHeader() {
         </div>
         {currentFolder && (
           <div className="flex flex-row items-center gap-2">
+            {currentFile && (
+              <Button
+                onClick={handleEditToggle}
+                variant={isEditMode ? "default" : "outline"}
+                disabled={isSaving}
+              >
+                {isSaving ? <Spinner /> : isEditMode ? "Save" : "Edit"}
+              </Button>
+            )}
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
                 <Button size="icon">

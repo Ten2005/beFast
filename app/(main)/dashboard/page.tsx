@@ -4,10 +4,11 @@ import { useDashboardStore } from "@/store/dashboard";
 import { useCallback, useEffect, useRef } from "react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useCommandAgent } from "@/hooks/dashboard/useCommandAgent";
-import { useAutoSave } from "@/hooks/dashboard/useAutoSave";
 import { useSegmentParser } from "@/hooks/dashboard/useSegmentParser";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { EditorTextarea } from "@/components/dashboard/EditorTextarea";
+import { updateFileAction } from "@/app/(main)/dashboard/actions";
+import { useSidebarStore } from "@/store/sidebar";
 import {
   SEGMENT_START_FRAG,
   SEGMENT_END_FRAG,
@@ -21,16 +22,22 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboardSidebar/sidebar";
+import { toast } from "sonner";
 
-// 内側のコンポーネント（useSidebarを使用）
 function DashboardContent() {
-  const { currentFile, setCurrentFile, commandModel } = useDashboardStore();
+  const {
+    currentFile,
+    setCurrentFile,
+    commandModel,
+    isEditMode,
+    setIsEditMode,
+  } = useDashboardStore();
   const { isMobile, setOpenMobile } = useSidebar();
+  const { updateFileContent } = useSidebarStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { processCommandAgent, pendingSegment, setPendingSegment } =
     useCommandAgent(currentFile?.content, commandModel);
-  const { scheduleAutoSave } = useAutoSave(processCommandAgent);
   const { replacePendingSegment } = useSegmentParser(
     SEGMENT_START_FRAG,
     SEGMENT_END_FRAG,
@@ -45,26 +52,14 @@ function DashboardContent() {
       if (!currentFile) {
         setOpenMobile(true);
       } else {
-        // モバイルでファイルが選択されたらサイドバーを閉じる
         setOpenMobile(false);
       }
     }
   }, [currentFile, isMobile, setOpenMobile]);
 
-  // ファイルが切り替わったときにカーソルを最後に移動
   useEffect(() => {
-    if (currentFile && textareaRef.current) {
-      // contentが空の場合は明示的に空文字列を設定
-      if (!currentFile.content) {
-        setCurrentFile({ ...currentFile, content: "" });
-      }
-      const content = currentFile.content || "";
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.setSelectionRange(content.length, content.length);
-          textareaRef.current.focus();
-        }
-      }, 0);
+    if (currentFile && !currentFile.content) {
+      setCurrentFile({ ...currentFile, content: "" });
     }
   }, [currentFile?.id, setCurrentFile]);
 
@@ -107,13 +102,8 @@ function DashboardContent() {
         const updatedFile = { ...currentFile, content: newContent };
         setCurrentFile(updatedFile);
 
-        scheduleAutoSave(
-          updatedFile.id,
-          updatedFile.title || "",
-          updatedFile.content || "",
-        );
+        processCommandAgent();
 
-        // カーソル位置を設定（削除があった場合）
         if (cursorPosition !== null && textareaRef.current) {
           setTimeout(() => {
             if (textareaRef.current) {
@@ -121,14 +111,37 @@ function DashboardContent() {
                 cursorPosition,
                 cursorPosition,
               );
-              textareaRef.current.focus();
             }
           }, 0);
         }
       }
     },
-    [currentFile, setCurrentFile, scheduleAutoSave, removeSegments],
+    [currentFile, setCurrentFile, processCommandAgent, removeSegments],
   );
+
+  const handleSave = useCallback(async () => {
+    if (!currentFile) return;
+
+    try {
+      await processCommandAgent();
+
+      await updateFileAction(
+        currentFile.id,
+        currentFile.title || "",
+        currentFile.content || "",
+      );
+
+      updateFileContent(currentFile.id, currentFile.content || "");
+      setIsEditMode(false);
+      toast.success("Successfully saved", {
+        description: "Your changes have been saved",
+      });
+    } catch (error) {
+      toast.error("Failed to save", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }, [currentFile, processCommandAgent, updateFileContent, setIsEditMode]);
 
   return (
     <>
@@ -139,12 +152,13 @@ function DashboardContent() {
             <SidebarTrigger />
           </div>
         </header>
-        <DashboardHeader />
+        <DashboardHeader onSave={handleSave} />
         <EditorTextarea
           ref={textareaRef}
           value={currentFile?.content || ""}
           onChange={handleTextAreaChange}
           disabled={!currentFile}
+          isEditMode={isEditMode}
         />
       </SidebarInset>
       <DashboardSidebar />
@@ -152,7 +166,6 @@ function DashboardContent() {
   );
 }
 
-// 外側のコンポーネント（SidebarProviderをラップ）
 export default function Dashboard() {
   return (
     <SidebarProvider>

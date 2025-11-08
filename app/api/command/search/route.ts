@@ -1,6 +1,5 @@
 import { xai } from "@ai-sdk/xai";
 import { generateText } from "ai";
-import { removeMarkdown } from "@/utils/removeMarkdown";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -25,8 +24,7 @@ export async function POST(req: Request) {
         },
       },
     });
-    const strippedText = await removeMarkdown(text);
-    return NextResponse.json({ text: strippedText });
+    return NextResponse.json({ text });
   } catch (error) {
     console.error("command search route failed", error);
     return NextResponse.json(
