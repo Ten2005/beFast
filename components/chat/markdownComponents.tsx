@@ -1,4 +1,5 @@
 import { type Components } from "react-markdown";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const markdownComponents: Components = {
   h1: ({ children }) => (
@@ -50,10 +51,32 @@ export const markdownComponents: Components = {
       {children}
     </td>
   ),
-  ul: ({ children }) => (
-    <ul className="my-6 ml-6 list-disc [&>li]:mt-2">{children}</ul>
-  ),
-  li: ({ children }) => <li>{children}</li>,
+  ul: ({ children, className }) => {
+    const isTaskList = className?.includes("contains-task-list");
+    return (
+      <ul
+        className={
+          isTaskList
+            ? "my-6 ml-6 [&>li]:mt-2"
+            : "my-6 ml-6 list-disc [&>li]:mt-2"
+        }
+      >
+        {children}
+      </ul>
+    );
+  },
+  li: ({ children }) => {
+    return <li className="flex items-center">{children}</li>;
+  },
+  input: ({ type, checked, disabled, ...props }) => {
+    if (type === "checkbox") {
+      return (
+        <Checkbox checked={checked} disabled={disabled} className="mr-2" />
+      );
+    }
+    // Return a plain input for other types to avoid type error
+    return <input type={type} {...props} />;
+  },
   pre: ({ children }) => (
     <pre className="bg-muted rounded px-[0.3rem] py-[0.2rem] font-mono text-sm overflow-x-auto whitespace-pre w-full min-w-0">
       {children}

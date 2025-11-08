@@ -2,7 +2,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { forwardRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
 import { markdownComponents } from "@/components/chat/markdownComponents";
 
 type EditorTextareaProps = {
@@ -34,7 +33,6 @@ export const EditorTextarea = forwardRef<
     <div className="w-full flex-1 h-fit min-h-[calc(100vh-5rem)] px-3 py-2">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
         components={markdownComponents}
       >
         {value || ""}
