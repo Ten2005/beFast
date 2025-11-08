@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { readConversationsAction } from "@/app/(main)/search/actions";
 
 export interface Message {
   role: "user" | "assistant" | "developer";
@@ -11,6 +12,12 @@ export interface UIMessage {
 }
 export const chatOptions = ["search", "fast", "fast-code", "coding"] as const;
 export type ChatType = (typeof chatOptions)[number];
+
+export interface Conversation {
+  id: number;
+  title: string;
+}
+
 interface ChatStore {
   input: string;
   setInput: (input: string) => void;
@@ -36,6 +43,10 @@ interface ChatStore {
 
   chatType: ChatType;
   setChatType: (chatType: ChatType) => void;
+
+  conversations: Conversation[];
+  setConversations: (conversations: Conversation[]) => void;
+  refreshConversations: () => Promise<void>;
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -66,4 +77,16 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   chatType: chatOptions[0],
   setChatType: (chatType: ChatType) => set({ chatType }),
+
+  conversations: [],
+  setConversations: (conversations) => set({ conversations }),
+
+  refreshConversations: async () => {
+    try {
+      const conversations = await readConversationsAction();
+      set({ conversations });
+    } catch (error) {
+      console.error("Failed to refresh conversations:", error);
+    }
+  },
 }));

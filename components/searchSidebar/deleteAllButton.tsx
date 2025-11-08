@@ -22,14 +22,14 @@ import { useChatStore } from "@/store/chat";
 export default function DeleteAllButton() {
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
-  const { setCurrentConversationId } = useChatStore();
+  const { setCurrentConversationId, refreshConversations } = useChatStore();
 
   const handleDeleteAll = async () => {
     setIsDeleting(true);
     await deleteAllConversationsAction();
     setCurrentConversationId(null);
     router.replace("/search");
-    router.refresh();
+    await refreshConversations();
     setIsDeleting(false);
   };
 

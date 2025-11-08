@@ -29,6 +29,7 @@ function SearchContent() {
     setChatType,
     input,
     setInput,
+    refreshConversations,
   } = useChatStore();
   const router = useRouter();
   const conversationIdRef = useRef<number | null>(currentConversationId);
@@ -151,6 +152,7 @@ function SearchContent() {
       return;
     }
 
+    const wasNewConversation = conversationIdRef.current === null;
     const savedId = await saveMessageAction(
       conversationIdRef.current,
       inputText,
@@ -158,6 +160,12 @@ function SearchContent() {
     );
     conversationIdRef.current = savedId;
     setCurrentConversationId(savedId);
+
+    // 新しい会話が作成された場合は、サイドバーを更新
+    if (wasNewConversation) {
+      await refreshConversations();
+    }
+
     await sendMessage({ text: inputText });
   };
 

@@ -26,7 +26,11 @@ export default function ConversationItem({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setCurrentConversationId, currentConversationId } = useChatStore();
+  const {
+    setCurrentConversationId,
+    currentConversationId,
+    refreshConversations,
+  } = useChatStore();
   const { isMobile, setOpenMobile } = useSidebar();
   const deleteDialogOpenRef = useRef(false);
   const editDialogOpenRef = useRef(false);
@@ -54,12 +58,12 @@ export default function ConversationItem({
       setCurrentConversationId(null);
       router.replace("/search");
     }
-    router.refresh();
+    await refreshConversations();
   };
 
   const handleEdit = async (newTitle: string) => {
     await updateConversationAction(newTitle, id);
-    router.refresh();
+    await refreshConversations();
   };
 
   const isSelected = currentConversationId === id;

@@ -10,26 +10,17 @@ import {
 } from "@/components/ui/sidebar";
 
 import { ModeToggle } from "@/components/modeToggle";
-import { readConversationsAction } from "@/app/(main)/search/actions";
 import ConversationItem from "@/components/searchSidebar/conversationItem";
 import DeleteAllButton from "@/components/searchSidebar/deleteAllButton";
-import { useEffect, useState } from "react";
-
-type Conversation = {
-  id: number;
-  title: string;
-};
+import { useEffect } from "react";
+import { useChatStore } from "@/store/chat";
 
 export function SearchSidebar() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { conversations, refreshConversations } = useChatStore();
 
   useEffect(() => {
-    const fetchConversations = async () => {
-      const data = await readConversationsAction();
-      setConversations(data);
-    };
-    fetchConversations();
-  }, []);
+    refreshConversations();
+  }, [refreshConversations]);
 
   return (
     <Sidebar side="right">
