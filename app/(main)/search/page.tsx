@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/sidebar";
 import { SearchSidebar } from "@/components/searchSidebar/sidebar";
 
-// 内側のコンポーネント（useSidebarを使用）
 function SearchContent() {
   const {
     currentConversationId,
@@ -39,7 +38,6 @@ function SearchContent() {
   const prevMessagesLengthRef = useRef(0);
   const prevConversationIdRef = useRef<number | null>(currentConversationId);
 
-  // null→IDへの遷移時は再初期化を避けるため、useChatのidを安定させる
   const [stableChatId, setStableChatId] = useState<string>(() =>
     currentConversationId ? `${currentConversationId}` : `new`,
   );
@@ -48,18 +46,14 @@ function SearchContent() {
     const prevId = prevConversationIdRef.current;
     const currentId = currentConversationId;
 
-    // null→数値への遷移の場合は、idを更新しない（再初期化を避ける）
     if (prevId === null && currentId !== null) {
-      // idを更新しない
     } else {
-      // それ以外の場合は通常通り更新
       setStableChatId(currentId ? `${currentId}` : `new`);
     }
 
     prevConversationIdRef.current = currentId;
   }, [currentConversationId]);
 
-  // chatTypeRefを常に最新のchatTypeと同期
   useEffect(() => {
     chatTypeRef.current = chatType;
   }, [chatType]);
@@ -68,7 +62,6 @@ function SearchContent() {
     () =>
       new DefaultChatTransport({
         fetch: async (url, options) => {
-          // 最新のchatTypeを使用してAPIエンドポイントを動的に決定
           const apiUrl = `/api/chat/${chatTypeRef.current}`;
           const body = JSON.parse(options?.body as string);
           body.conversationId = conversationIdRef.current;
@@ -78,7 +71,7 @@ function SearchContent() {
           });
         },
       }),
-    [], // 依存配列を空にして、transportを固定
+    [],
   );
 
   const { messages, setMessages, sendMessage, status, error, stop } = useChat({
@@ -88,12 +81,10 @@ function SearchContent() {
 
   useConversationSync(setMessages, setCurrentConversationId);
 
-  // conversationIdRefを常に最新のcurrentConversationIdと同期
   useEffect(() => {
     conversationIdRef.current = currentConversationId;
   }, [currentConversationId]);
 
-  // currentConversationIdがnullになった時にメッセージをクリア
   useEffect(() => {
     if (currentConversationId === null) {
       setMessages([]);
@@ -106,12 +97,9 @@ function SearchContent() {
     }
   }, [currentConversationId, isMobile, setOpenMobile]);
 
-  // 最新のユーザーメッセージを画面上部にスクロール
   useEffect(() => {
-    // 新しいメッセージが追加された場合のみチェック
     if (messages.length > prevMessagesLengthRef.current) {
       const lastMessage = messages[messages.length - 1];
-      // 最後に追加されたメッセージがユーザーメッセージの場合のみスクロール
       if (lastMessage?.role === "user" && latestUserMessageRef.current) {
         latestUserMessageRef.current.scrollIntoView({
           behavior: "smooth",
@@ -119,11 +107,9 @@ function SearchContent() {
         });
       }
     }
-    // 現在のメッセージ数を保存
     prevMessagesLengthRef.current = messages.length;
   }, [messages]);
 
-  // エラーハンドリング: エラー発生時にトーストを表示し、状態をリセット
   useEffect(() => {
     if (error) {
       const errorMessage =
@@ -135,7 +121,6 @@ function SearchContent() {
       toast.error(errorMessage, {
         description: "もう一度お試しください",
       });
-      // エラー発生時にストリーミングを停止して状態をリセット
       stop();
     }
   }, [error, stop]);
@@ -147,7 +132,6 @@ function SearchContent() {
   };
 
   const handleSubmit = async (inputText: string) => {
-    // 送信中または既に処理中の場合は早期リターン
     if (status !== "ready") {
       return;
     }
@@ -161,7 +145,6 @@ function SearchContent() {
     conversationIdRef.current = savedId;
     setCurrentConversationId(savedId);
 
-    // 新しい会話が作成された場合は、サイドバーを更新
     if (wasNewConversation) {
       await refreshConversations();
     }
@@ -169,7 +152,6 @@ function SearchContent() {
     await sendMessage({ text: inputText });
   };
 
-  // 最新のユーザーメッセージのインデックスを見つける
   const latestUserMessageIndex = messages.reduce(
     (latestIndex, message, index) => {
       return message.role === "user" ? index : latestIndex;
@@ -180,7 +162,7 @@ function SearchContent() {
   return (
     <>
       <SidebarInset>
-        <header className="flex h-10 shrink-0 items-center gap-2 border-b">
+        <header className="flex h-10 shrink-0 items-center gap-2 border-b sticky top-0 z-50 bg-background">
           <div className="flex justify-between w-full items-center gap-2 px-3">
             <Navigation />
             <SidebarTrigger />
@@ -215,7 +197,6 @@ function SearchContent() {
   );
 }
 
-// 外側のコンポーネント（SidebarProviderをラップ）
 export default function SearchPage() {
   return (
     <SidebarProvider>

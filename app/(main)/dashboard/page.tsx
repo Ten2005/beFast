@@ -146,7 +146,7 @@ function DashboardContent() {
   return (
     <>
       <SidebarInset>
-        <header className="flex h-10 shrink-0 items-center gap-2 border-b">
+        <header className="flex h-10 shrink-0 items-center gap-2 border-b sticky top-0 z-50 bg-background">
           <div className="flex justify-between w-full items-center gap-2 px-3">
             <Navigation />
             <SidebarTrigger />
