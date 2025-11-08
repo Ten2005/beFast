@@ -30,7 +30,7 @@ export const EditorTextarea = forwardRef<
   }
 
   return (
-    <div className="w-full flex-1 h-fit min-h-[calc(100vh-5rem)] px-3 py-2">
+    <div className="w-full flex-1 h-fit min-h-[calc(100vh-5rem)] px-3 py-2 overflow-x-hidden break-words">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={markdownComponents}
