@@ -2,13 +2,10 @@
 
 import { useDashboardStore } from "@/store/dashboard";
 import { useCallback, useEffect, useRef } from "react";
-import { useSidebar } from "@/components/ui/sidebar";
 import { useCommandAgent } from "@/hooks/dashboard/useCommandAgent";
 import { useSegmentParser } from "@/hooks/dashboard/useSegmentParser";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { EditorTextarea } from "@/components/dashboard/EditorTextarea";
-import { updateFileAction } from "@/app/(main)/dashboard/actions";
-import { useSidebarStore } from "@/store/sidebar";
 import {
   SEGMENT_START_FRAG,
   SEGMENT_END_FRAG,
@@ -22,18 +19,10 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboardSidebar/sidebar";
-import { toast } from "sonner";
 
 function DashboardContent() {
-  const {
-    currentFile,
-    setCurrentFile,
-    commandModel,
-    isEditMode,
-    setIsEditMode,
-  } = useDashboardStore();
-  const { isMobile, setOpenMobile } = useSidebar();
-  const { updateFileContent } = useSidebarStore();
+  const { currentFile, setCurrentFile, commandModel, isEditMode } =
+    useDashboardStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const { processCommandAgent, pendingSegment, setPendingSegment } =
@@ -46,16 +35,6 @@ function DashboardContent() {
     DELETE_START_FRAG,
     DELETE_END_FRAG,
   );
-
-  useEffect(() => {
-    if (isMobile) {
-      if (!currentFile) {
-        setOpenMobile(true);
-      } else {
-        setOpenMobile(false);
-      }
-    }
-  }, [currentFile, isMobile, setOpenMobile]);
 
   useEffect(() => {
     if (currentFile && !currentFile.content) {
@@ -119,30 +98,6 @@ function DashboardContent() {
     [currentFile, setCurrentFile, processCommandAgent, removeSegments],
   );
 
-  const handleSave = useCallback(async () => {
-    if (!currentFile) return;
-
-    try {
-      await processCommandAgent();
-
-      await updateFileAction(
-        currentFile.id,
-        currentFile.title || "",
-        currentFile.content || "",
-      );
-
-      updateFileContent(currentFile.id, currentFile.content || "");
-      setIsEditMode(false);
-      toast.success("Successfully saved", {
-        description: "Your changes have been saved",
-      });
-    } catch (error) {
-      toast.error("Failed to save", {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  }, [currentFile, processCommandAgent, updateFileContent, setIsEditMode]);
-
   return (
     <>
       <SidebarInset>
@@ -152,7 +107,7 @@ function DashboardContent() {
             <SidebarTrigger />
           </div>
         </header>
-        <DashboardHeader onSave={handleSave} />
+        <DashboardHeader />
         <EditorTextarea
           ref={textareaRef}
           value={currentFile?.content || ""}

@@ -10,6 +10,7 @@ export async function createFile(parent_id: number, page: number) {
       user_id: user.id,
       parent_id,
       page,
+      title: "None",
     })
     .select()
     .single();
@@ -66,7 +67,11 @@ export async function readFiles(parent_id: number) {
     console.error(error);
     throw new Error("Failed to get files");
   }
-  return data;
+  return data.map((file) => ({
+    ...file,
+    title: file.title || "None",
+    content: file.content || "",
+  }));
 }
 
 export async function updateFile(id: number, title: string, content: string) {

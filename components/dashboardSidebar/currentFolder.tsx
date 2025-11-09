@@ -216,14 +216,6 @@ export default function CurrentFolder() {
             onClick={() => {
               if (!isDragging) {
                 setCurrentFile(file);
-                // Close sidebar on mobile when file is selected
-                if (
-                  isMobile &&
-                  !editDialogOpenRef.current &&
-                  !deleteDialogOpenRef.current
-                ) {
-                  setOpenMobile(false);
-                }
               }
             }}
             className={cn(

@@ -4,7 +4,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarMenuAction,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import DeleteConfirmationDialog from "@/components/dashboardSidebar/deleteConfirmationDialog";
 import EditConfirmationDialog from "@/components/dashboardSidebar/editConfirmationDialog";
@@ -31,21 +30,12 @@ export default function ConversationItem({
     currentConversationId,
     refreshConversations,
   } = useChatStore();
-  const { isMobile, setOpenMobile } = useSidebar();
   const deleteDialogOpenRef = useRef(false);
   const editDialogOpenRef = useRef(false);
 
   const handleOpen = () => {
     setCurrentConversationId(id);
     router.push(`/search?c=${id}`);
-
-    if (
-      isMobile &&
-      !deleteDialogOpenRef.current &&
-      !editDialogOpenRef.current
-    ) {
-      setOpenMobile(false);
-    }
   };
 
   const handleDelete = async () => {

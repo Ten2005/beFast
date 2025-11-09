@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { useConversationSync } from "@/hooks/search/useConversationSync";
 import { ChatHeader } from "@/components/chat/chatHeader";
 import { ChatInput } from "@/components/chat/chatInput";
-import { useSidebar } from "@/components/ui/sidebar";
 import { toast } from "sonner";
 import Navigation from "@/components/navigation";
 import {
@@ -33,7 +32,6 @@ function SearchContent() {
   const router = useRouter();
   const conversationIdRef = useRef<number | null>(currentConversationId);
   const chatTypeRef = useRef(chatType);
-  const { isMobile, setOpenMobile } = useSidebar();
   const latestUserMessageRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
   const prevConversationIdRef = useRef<number | null>(currentConversationId);
@@ -90,12 +88,6 @@ function SearchContent() {
       setMessages([]);
     }
   }, [currentConversationId, setMessages]);
-
-  useEffect(() => {
-    if (isMobile && currentConversationId) {
-      setOpenMobile(false);
-    }
-  }, [currentConversationId, isMobile, setOpenMobile]);
 
   useEffect(() => {
     if (messages.length > prevMessagesLengthRef.current) {
