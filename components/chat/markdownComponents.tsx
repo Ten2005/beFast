@@ -66,7 +66,7 @@ export const markdownComponents: Components = {
     );
   },
   li: ({ children }) => {
-    return <li className="flex items-center">{children}</li>;
+    return <li>{children}</li>;
   },
   input: ({ type, checked, disabled, ...props }) => {
     if (type === "checkbox") {
