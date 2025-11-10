@@ -46,8 +46,6 @@ interface ChatStore {
 
   conversations: Conversation[];
   setConversations: (conversations: Conversation[]) => void;
-  removeConversation: (id: number) => void;
-  clearConversations: () => void;
   refreshConversations: () => Promise<void>;
 }
 
@@ -82,13 +80,6 @@ export const useChatStore = create<ChatStore>((set) => ({
 
   conversations: [],
   setConversations: (conversations) => set({ conversations }),
-
-  removeConversation: (id: number) =>
-    set((state) => ({
-      conversations: state.conversations.filter((conv) => conv.id !== id),
-    })),
-
-  clearConversations: () => set({ conversations: [] }),
 
   refreshConversations: async () => {
     try {

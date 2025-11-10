@@ -34,6 +34,8 @@ export async function readMessagesAction(conversation_id: number) {
 }
 
 export async function readConversationsAction() {
+  // キャッシュを無効化して最新のデータを取得
+  revalidateTag("conversations");
   const conversations = await readConversations();
   return conversations;
 }
@@ -52,10 +54,12 @@ export async function deleteConversationAction(conversation_id: number) {
   await deleteConversation(conversation_id);
   revalidatePath("/search");
   revalidateTag("messages");
+  revalidateTag("conversations");
 }
 
 export async function deleteAllConversationsAction() {
   await deleteAllConversations();
   revalidatePath("/search");
   revalidateTag("messages");
+  revalidateTag("conversations");
 }

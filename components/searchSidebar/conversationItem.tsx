@@ -28,7 +28,6 @@ export default function ConversationItem({
   const {
     setCurrentConversationId,
     currentConversationId,
-    removeConversation,
     refreshConversations,
   } = useChatStore();
   const deleteDialogOpenRef = useRef(false);
@@ -40,8 +39,7 @@ export default function ConversationItem({
   };
 
   const handleDelete = async () => {
-    // 即座にUIを更新
-    removeConversation(id);
+    await deleteConversationAction(id);
     const currentId = searchParams.get("c");
     if (
       (currentId && Number(currentId) === id) ||
@@ -50,9 +48,6 @@ export default function ConversationItem({
       setCurrentConversationId(null);
       router.replace("/search");
     }
-    // サーバーから削除
-    await deleteConversationAction(id);
-    // サーバーから最新の状態を取得して同期
     await refreshConversations();
   };
 
