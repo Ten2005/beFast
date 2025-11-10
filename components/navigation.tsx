@@ -13,7 +13,6 @@ import Link from "next/link";
 const links = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/search", label: "Search" },
-  { href: "/podcast", label: "Podcast" },
 ];
 
 export default function Navigation() {
