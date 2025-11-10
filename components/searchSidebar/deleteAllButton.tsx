@@ -22,13 +22,21 @@ import { useChatStore } from "@/store/chat";
 export default function DeleteAllButton() {
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
-  const { setCurrentConversationId, refreshConversations } = useChatStore();
+  const {
+    setCurrentConversationId,
+    clearConversations,
+    refreshConversations,
+  } = useChatStore();
 
   const handleDeleteAll = async () => {
     setIsDeleting(true);
-    await deleteAllConversationsAction();
+    // 即座にUIを更新
+    clearConversations();
     setCurrentConversationId(null);
     router.replace("/search");
+    // サーバーから削除
+    await deleteAllConversationsAction();
+    // サーバーから最新の状態を取得して同期
     await refreshConversations();
     setIsDeleting(false);
   };
